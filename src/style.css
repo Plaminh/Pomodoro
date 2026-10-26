@@ -1,0 +1,113 @@
+/* ==========================================================================
+   Pomodoro Lite - Minimalist Pixel-Style CSS Foundation
+   ========================================================================== */
+
+/* CSS Reset */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* Pixel Font Configuration with Monospace Fallback */
+@font-face {
+  font-family: 'Pixelify Sans';
+  src: url('/fonts/PixelifySans-Regular.ttf') format('truetype');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-pixel: 'Pixelify Sans', 'Courier New', Courier, monospace;
+  --color-foreground: #ffffff;
+  --color-background-fallback: #111111;
+  --color-text-muted: rgba(255, 255, 255, 0.85);
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--color-background-fallback);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  color: var(--color-foreground);
+  font-family: var(--font-pixel);
+  -webkit-font-smoothing: none;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Fullscreen Centered Layout */
+#app {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.timer-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+  padding: 1.5rem;
+  gap: clamp(1rem, 2.5vh, 2rem);
+}
+
+/* Responsive Pixel Typography */
+.timer-display {
+  font-size: clamp(4rem, 16vw, 9rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0.08em;
+}
+
+.phase-label {
+  font-size: clamp(1.2rem, 4vw, 2.2rem);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+}
+
+.focus-hours {
+  font-size: clamp(0.9rem, 2.8vw, 1.35rem);
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
+}
+
+/* Minimal Text-Based Controls */
+.controls-nav {
+  display: flex;
+  gap: clamp(1.5rem, 5vw, 3rem);
+  margin-top: 0.5rem;
+}
+
+.btn-control {
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--color-foreground);
+  font-family: inherit;
+  font-size: clamp(1rem, 3.2vw, 1.5rem);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  transition: opacity 0.15s ease-in-out;
+}
+
+.btn-control:hover,
+.btn-control:focus-visible {
+  opacity: 0.6;
+}
+
+.btn-control:active {
+  opacity: 0.4;
+}

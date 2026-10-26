@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pomodoro Lite</title>
+    <link rel="stylesheet" href="/src/style.css" />
+  </head>
+  <body>
+    <div id="app">
+      <main class="timer-container">
+        <div id="timer-display" class="timer-display">50:00</div>
+        <div id="phase-label" class="phase-label">FOCUS TIME</div>
+        <div id="focus-hours" class="focus-hours">TOTAL HOURS: 0h</div>
+        <nav class="controls-nav" aria-label="Timer controls">
+          <button id="btn-start" type="button" class="btn-control">START</button>
+          <button id="btn-pause" type="button" class="btn-control">PAUSE</button>
+          <button id="btn-reset" type="button" class="btn-control">RESET</button>
+        </nav>
+      </main>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
