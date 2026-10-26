@@ -2,16 +2,13 @@
  * src/main.ts
  *
  * Application entry point for Pomodoro Lite.
- *
- * Responsibilities:
- * - Initialize UI references and bind event listeners.
- * - Connect UI to the Pomodoro Controller, Timer Engine, Storage, and Background services.
- * - Render initial application state.
+ * Connects the Timestamp-Based Timer Engine to the minimal UI controls.
  */
 
 import "./style.css";
 import type { AppState } from "./types";
 import { FOCUS_DURATION_MS } from "./types";
+import { TimerEngine, formatTimeMMSS } from "./core/timer";
 
 /**
  * Initial default application state for Pomodoro Lite.
@@ -24,7 +21,7 @@ export const initialAppState: AppState = {
   completedSessions: 0,
 };
 
-interface AppElements {
+export interface AppElements {
   timerDisplay: HTMLElement | null;
   phaseLabel: HTMLElement | null;
   focusHours: HTMLElement | null;
@@ -33,7 +30,7 @@ interface AppElements {
   btnReset: HTMLButtonElement | null;
 }
 
-function getAppElements(): AppElements {
+export function getAppElements(): AppElements {
   return {
     timerDisplay: document.getElementById("timer-display"),
     phaseLabel: document.getElementById("phase-label"),
@@ -45,38 +42,59 @@ function getAppElements(): AppElements {
 }
 
 /**
- * Prepares UI listeners and attaches event hooks.
- * Controls are wired for readiness; core engine execution will be connected in the Timer phase.
+ * Initializes and wires the TimerEngine with the DOM UI controls.
  */
-function setupControls(elements: AppElements): void {
+export function initApp(): TimerEngine {
+  const elements = getAppElements();
+
+  const timer = new TimerEngine({
+    durationMs: FOCUS_DURATION_MS,
+    onTick: (remainingMs) => {
+      if (elements.timerDisplay) {
+        elements.timerDisplay.textContent = formatTimeMMSS(remainingMs);
+      }
+    },
+    onComplete: () => {
+      if (elements.timerDisplay) {
+        elements.timerDisplay.textContent = formatTimeMMSS(0);
+      }
+      console.info("[Pomodoro Lite] Timer completed.");
+    },
+  });
+
+  // Ensure initial display reflects the configured starting time (50:00)
+  if (elements.timerDisplay) {
+    elements.timerDisplay.textContent = formatTimeMMSS(timer.getRemainingMs());
+  }
+
+  // Wire control events
   elements.btnStart?.addEventListener("click", () => {
-    // Will connect to PomodoroController.start()
-    console.debug("[Pomodoro Lite] START clicked (engine pending integration)");
+    if (timer.getStatus() === "paused") {
+      timer.resume();
+    } else {
+      timer.start();
+    }
   });
 
   elements.btnPause?.addEventListener("click", () => {
-    // Will connect to PomodoroController.pause()
-    console.debug("[Pomodoro Lite] PAUSE clicked (engine pending integration)");
+    timer.pause();
   });
 
   elements.btnReset?.addEventListener("click", () => {
-    // Will connect to PomodoroController.reset()
-    console.debug("[Pomodoro Lite] RESET clicked (engine pending integration)");
+    timer.reset();
   });
+
+  console.info("[Pomodoro Lite] Timer engine connected to UI successfully.");
+  return timer;
 }
 
-/**
- * Initialize Pomodoro Lite application entry point.
- */
-export function initApp(): void {
-  const elements = getAppElements();
-  setupControls(elements);
-  console.info("[Pomodoro Lite] Initialized static preview successfully.");
-}
-
-// Bootstrap once the DOM is ready
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initApp);
-} else {
-  initApp();
+// Bootstrap once the DOM is ready in browser environment
+if (typeof document !== "undefined") {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+      initApp();
+    });
+  } else {
+    initApp();
+  }
 }
