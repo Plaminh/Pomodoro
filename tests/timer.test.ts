@@ -490,3 +490,55 @@ test("Regression 8: Tick callback calling pause() during resume() leaves no acti
 
   timer.dispose();
 });
+
+test("Regression 9: onTick(0) calling reset() cancels completion callback", async () => {
+  let completionFired = false;
+  const timer = new TimerEngine({
+    durationMs: 40,
+    tickIntervalMs: 10,
+    onTick: (remainingMs) => {
+      if (remainingMs === 0) {
+        timer.reset(5000);
+      }
+    },
+    onComplete: () => {
+      completionFired = true;
+    },
+  });
+
+  timer.start();
+  await new Promise((resolve) => setTimeout(resolve, 80));
+
+  assert.equal(completionFired, false, "Resetting during onTick(0) must cancel stale completion");
+  assert.equal(timer.getStatus(), "idle");
+  assert.equal(timer.getRemainingMs(), 5000);
+  assert.equal(timer.hasActiveInterval, false);
+
+  timer.dispose();
+});
+
+test("Regression 10: onTick(0) calling start() does not trigger stale completion on new session", async () => {
+  let completionCallCount = 0;
+  const timer = new TimerEngine({
+    durationMs: 40,
+    tickIntervalMs: 10,
+    onTick: (remainingMs) => {
+      if (remainingMs === 0) {
+        timer.start(5000);
+      }
+    },
+    onComplete: () => {
+      completionCallCount++;
+    },
+  });
+
+  timer.start();
+  await new Promise((resolve) => setTimeout(resolve, 80));
+
+  assert.equal(completionCallCount, 0, "Starting new session from onTick(0) must not fire stale completion");
+  assert.equal(timer.getStatus(), "running");
+  assert.ok(timer.getRemainingMs() <= 5000 && timer.getRemainingMs() > 4700);
+  assert.equal(timer.hasActiveInterval, true);
+
+  timer.dispose();
+});

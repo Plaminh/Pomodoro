@@ -10,10 +10,11 @@
  * - Handles start, pause, resume, reset, remaining time calculation,
  *   completion detection, and subscription to updates.
  * - Robust reentrancy protection: safe to call pause(), reset(), or start()
- *   inside tick or completion callbacks without interval leaks or state corruption.
+ *   inside tick or completion callbacks without interval leaks, duplicate
+ *   completions, or state corruption across sessions.
  */
 
-import type { TimerStatus } from "../types";
+import type { TimerStatus } from "../types.ts";
 
 export type TimerTickCallback = (remainingMs: number) => void;
 export type TimerCompleteCallback = () => void;
@@ -63,6 +64,7 @@ export class TimerEngine implements ITimerEngine {
   private intervalId: ReturnType<typeof setInterval> | null = null;
   private completedFired = false;
   private isDisposed = false;
+  private sessionId = 0;
 
   private readonly tickListeners = new Set<TimerTickCallback>();
   private readonly completeListeners = new Set<TimerCompleteCallback>();
@@ -120,6 +122,9 @@ export class TimerEngine implements ITimerEngine {
       return;
     }
 
+    this.sessionId++;
+    const currentSession = this.sessionId;
+
     if (durationMs !== undefined && durationMs >= 0) {
       this.durationMs = durationMs;
     }
@@ -132,10 +137,9 @@ export class TimerEngine implements ITimerEngine {
       this._remainingMs = 0;
       this._endTime = null;
       this._status = "idle";
-      const wasCompleted = this.completedFired;
-      this.completedFired = true;
       this.notifyTick(0);
-      if (!wasCompleted) {
+      if (this.sessionId === currentSession && !this.completedFired) {
+        this.completedFired = true;
         this.triggerCompletion();
       }
       return;
@@ -168,12 +172,12 @@ export class TimerEngine implements ITimerEngine {
     this._endTime = null;
 
     if (remaining <= 0) {
+      const currentSession = this.sessionId;
       this._remainingMs = 0;
       this._status = "idle";
-      const wasCompleted = this.completedFired;
-      this.completedFired = true;
       this.notifyTick(0);
-      if (!wasCompleted) {
+      if (this.sessionId === currentSession && !this.completedFired) {
+        this.completedFired = true;
         this.triggerCompletion();
       }
       return;
@@ -193,14 +197,14 @@ export class TimerEngine implements ITimerEngine {
     }
 
     if (this._remainingMs <= 0) {
+      const currentSession = this.sessionId;
       this.stopInterval();
       this._remainingMs = 0;
       this._endTime = null;
       this._status = "idle";
-      const wasCompleted = this.completedFired;
-      this.completedFired = true;
       this.notifyTick(0);
-      if (!wasCompleted) {
+      if (this.sessionId === currentSession && !this.completedFired) {
+        this.completedFired = true;
         this.triggerCompletion();
       }
       return;
@@ -226,6 +230,7 @@ export class TimerEngine implements ITimerEngine {
       return;
     }
 
+    this.sessionId++;
     this.stopInterval();
 
     if (durationMs !== undefined && durationMs >= 0) {
@@ -265,6 +270,7 @@ export class TimerEngine implements ITimerEngine {
    * Disposes the timer, stops any active interval, and clears all subscriptions.
    */
   dispose(): void {
+    this.sessionId++;
     this.stopInterval();
     this.tickListeners.clear();
     this.completeListeners.clear();
@@ -284,17 +290,16 @@ export class TimerEngine implements ITimerEngine {
     this._remainingMs = remaining;
 
     if (remaining <= 0) {
+      const currentSession = this.sessionId;
       this.stopInterval();
       this._remainingMs = 0;
       this._endTime = null;
       this._status = "idle";
 
-      const wasCompleted = this.completedFired;
-      this.completedFired = true;
-
       this.notifyTick(0);
 
-      if (!wasCompleted) {
+      if (this.sessionId === currentSession && !this.completedFired) {
+        this.completedFired = true;
         this.triggerCompletion();
       }
     } else {
@@ -308,6 +313,7 @@ export class TimerEngine implements ITimerEngine {
   }
 
   private triggerCompletion(): void {
+    const dispatchSession = this.sessionId;
     const listeners = Array.from(this.completeListeners);
     for (const listener of listeners) {
       if (this.isDisposed) {
@@ -320,6 +326,11 @@ export class TimerEngine implements ITimerEngine {
         listener();
       } catch (err) {
         console.error("[TimerEngine] Error in completion listener:", err);
+      }
+      // If a completion listener started a new session or disposed the timer,
+      // subsequent listeners for the old completed session shouldn't corrupt the new session
+      if (this.sessionId !== dispatchSession) {
+        break;
       }
     }
   }

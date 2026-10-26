@@ -2,13 +2,14 @@
  * src/main.ts
  *
  * Application entry point for Pomodoro Lite.
- * Connects the Timestamp-Based Timer Engine to the minimal UI controls.
+ * Connects the Pomodoro Controller to the minimal fullscreen UI.
  */
 
 import "./style.css";
-import type { AppState } from "./types";
-import { FOCUS_DURATION_MS } from "./types";
-import { TimerEngine, formatTimeMMSS } from "./core/timer";
+import type { AppState } from "./types.ts";
+import { FOCUS_DURATION_MS } from "./types.ts";
+import { PomodoroController } from "./core/pomodoro.ts";
+import { formatTimeMMSS } from "./core/timer.ts";
 
 /**
  * Initial default application state for Pomodoro Lite.
@@ -42,50 +43,55 @@ export function getAppElements(): AppElements {
 }
 
 /**
- * Initializes and wires the TimerEngine with the DOM UI controls.
+ * Renders the state snapshot to the DOM elements using textContent.
  */
-export function initApp(): TimerEngine {
-  const elements = getAppElements();
+export function renderState(elements: AppElements, state: AppState): void {
+  if (elements.timerDisplay) {
+    elements.timerDisplay.textContent = formatTimeMMSS(state.remainingMs);
+  }
+  if (elements.phaseLabel) {
+    elements.phaseLabel.textContent = state.phase === "focus" ? "FOCUS TIME" : "BREAK TIME";
+  }
+  if (elements.focusHours) {
+    elements.focusHours.textContent = `TOTAL HOURS: ${state.completedSessions}h`;
+  }
+}
 
-  const timer = new TimerEngine({
-    durationMs: FOCUS_DURATION_MS,
-    onTick: (remainingMs) => {
-      if (elements.timerDisplay) {
-        elements.timerDisplay.textContent = formatTimeMMSS(remainingMs);
-      }
-    },
-    onComplete: () => {
-      if (elements.timerDisplay) {
-        elements.timerDisplay.textContent = formatTimeMMSS(0);
-      }
-      console.info("[Pomodoro Lite] Timer completed.");
-    },
+/**
+ * Initializes and wires the PomodoroController with the DOM UI controls.
+ */
+export function initApp(): PomodoroController {
+  const elements = getAppElements();
+  const pomodoro = new PomodoroController();
+
+  // Subscribe to state updates
+  pomodoro.subscribe((state) => {
+    renderState(elements, state);
   });
 
-  // Ensure initial display reflects the configured starting time (50:00)
-  if (elements.timerDisplay) {
-    elements.timerDisplay.textContent = formatTimeMMSS(timer.getRemainingMs());
-  }
+  // Render initial display
+  renderState(elements, pomodoro.getState());
 
   // Wire control events
   elements.btnStart?.addEventListener("click", () => {
-    if (timer.getStatus() === "paused") {
-      timer.resume();
+    const currentState = pomodoro.getState();
+    if (currentState.status === "paused") {
+      pomodoro.resume();
     } else {
-      timer.start();
+      pomodoro.start();
     }
   });
 
   elements.btnPause?.addEventListener("click", () => {
-    timer.pause();
+    pomodoro.pause();
   });
 
   elements.btnReset?.addEventListener("click", () => {
-    timer.reset();
+    pomodoro.reset();
   });
 
-  console.info("[Pomodoro Lite] Timer engine connected to UI successfully.");
-  return timer;
+  console.info("[Pomodoro Lite] Pomodoro controller connected to UI successfully.");
+  return pomodoro;
 }
 
 // Bootstrap once the DOM is ready in browser environment
