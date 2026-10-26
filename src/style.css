@@ -1,8 +1,10 @@
 /* ==========================================================================
-   Pomodoro Lite - Minimalist Pixel-Style CSS Foundation
+   Pomodoro Lite - Minimalist Pixel-Style CSS Foundation (Phase 6)
    ========================================================================== */
 
-/* CSS Reset */
+/* --------------------------------------------------------------------------
+   1. CSS Reset & Box Sizing
+   -------------------------------------------------------------------------- */
 *,
 *::before,
 *::after {
@@ -11,109 +13,232 @@
   padding: 0;
 }
 
-/* Pixel Font Configuration with Monospace Fallback */
-@font-face {
-  font-family: 'Pixelify Sans';
-  src: url('/fonts/PixelifySans-Regular.ttf') format('truetype');
-  font-weight: 400 700;
-  font-style: normal;
-  font-display: swap;
-}
-
+/* --------------------------------------------------------------------------
+   2. Design Tokens & Reusable Custom Properties
+   -------------------------------------------------------------------------- */
 :root {
-  --font-pixel: 'Pixelify Sans', 'Courier New', Courier, monospace;
-  --color-foreground: #ffffff;
-  --color-background-fallback: #111111;
-  --color-text-muted: rgba(255, 255, 255, 0.85);
+  /* Color System (Clean, calm dark theme with retro phosphor accents) */
+  --color-background: #0d0f12;
+  --color-text-primary: #f0f4f8;
+  --color-text-secondary: #94a3b8;
+  --color-accent: #6ee7b7;
+  --color-overlay: rgba(13, 15, 18, 0.65);
+  --color-focus: #38bdf8;
+
+  /* Button & Border System (Square, pixel-inspired borders) */
+  --color-border: rgba(240, 244, 248, 0.22);
+  --color-border-hover: rgba(240, 244, 248, 0.55);
+  --color-btn-bg: rgba(20, 24, 30, 0.65);
+  --color-btn-bg-hover: rgba(32, 38, 48, 0.85);
+  --color-btn-bg-active: rgba(45, 55, 68, 0.95);
+
+  /* Fallback Pixel & Monospace Typography System */
+  --font-pixel: "Courier New", Courier, "Lucida Console", Monaco, ui-monospace, monospace;
+
+  /* High-Contrast Drop Shadow for Readability Over Custom Backgrounds */
+  --text-shadow-contrast: 0 2px 4px rgba(0, 0, 0, 0.9), 0 0 10px rgba(0, 0, 0, 0.7);
+
+  /* Aliases for backwards compatibility */
+  --color-foreground: var(--color-text-primary);
+  --color-background-fallback: var(--color-background);
+  --color-text-muted: var(--color-text-secondary);
 }
 
-html,
+/* --------------------------------------------------------------------------
+   3. Document & Body Layout
+   -------------------------------------------------------------------------- */
+html {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
 body {
+  min-height: 100vh;
+  min-height: 100dvh;
   width: 100%;
-  height: 100%;
-  overflow: hidden;
-  background-color: var(--color-background-fallback);
+  overflow-x: hidden;
+  overflow-y: auto;
+  background-color: var(--color-background);
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  color: var(--color-foreground);
+  color: var(--color-text-primary);
   font-family: var(--font-pixel);
   -webkit-font-smoothing: none;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
 }
 
-/* Fullscreen Centered Layout */
+/* --------------------------------------------------------------------------
+   4. Custom Background Overlay
+      Ensures text readability on bright or busy images without blocking clicks
+   -------------------------------------------------------------------------- */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-color: var(--color-overlay);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* --------------------------------------------------------------------------
+   5. Main Application Shell
+   -------------------------------------------------------------------------- */
 #app {
   position: relative;
-  width: 100vw;
-  height: 100vh;
+  z-index: 1;
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 100vw;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: space-between;
+  padding: clamp(1rem, 3vh, 2rem) clamp(1rem, 4vw, 2.5rem);
   text-align: center;
 }
 
+/* --------------------------------------------------------------------------
+   6. Timer Content Container
+   -------------------------------------------------------------------------- */
 .timer-container {
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  max-width: 720px;
   user-select: none;
-  padding: 1.5rem;
-  gap: clamp(1rem, 2.5vh, 2rem);
+  padding: 1rem 0;
+  gap: clamp(1rem, 2.8vh, 2rem);
 }
 
-/* Responsive Pixel Typography */
+/* --------------------------------------------------------------------------
+   7. Typography Hierarchy
+   -------------------------------------------------------------------------- */
+
+/* Phase Label (Secondary hierarchy) */
+.phase-label {
+  font-size: clamp(1rem, 3.2vw, 1.6rem);
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  text-shadow: var(--text-shadow-contrast);
+}
+
+/* Timer Countdown (Primary, most prominent element) */
 .timer-display {
-  font-size: clamp(4rem, 16vw, 9rem);
+  font-size: clamp(3.75rem, 15vw, 8.5rem);
   font-weight: 700;
   line-height: 1;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+  color: var(--color-text-primary);
+  text-shadow: var(--text-shadow-contrast);
+  text-align: center;
+  display: inline-block;
 }
 
-.phase-label {
-  font-size: clamp(1.2rem, 4vw, 2.2rem);
+/* Total Hours Completed (Tertiary hierarchy) */
+.focus-hours {
+  font-size: clamp(0.85rem, 2.2vw, 1.15rem);
   letter-spacing: 0.15em;
   text-transform: uppercase;
+  color: var(--color-text-secondary);
+  text-shadow: var(--text-shadow-contrast);
 }
 
-.focus-hours {
-  font-size: clamp(0.9rem, 2.8vw, 1.35rem);
-  letter-spacing: 0.12em;
-  color: var(--color-text-muted);
-}
-
-/* Minimal Text-Based Controls */
+/* --------------------------------------------------------------------------
+   8. Controls Navigation & Buttons
+   -------------------------------------------------------------------------- */
 .controls-nav {
   display: flex;
-  gap: clamp(1.5rem, 5vw, 3rem);
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(0.75rem, 2.5vw, 1.5rem);
   margin-top: 0.5rem;
+  width: 100%;
 }
 
 .btn-control {
-  background: transparent;
-  border: none;
-  outline: none;
-  color: var(--color-foreground);
+  background-color: var(--color-btn-bg);
+  color: var(--color-text-primary);
+  border: 2px solid var(--color-border);
+  border-radius: 0;
   font-family: inherit;
-  font-size: clamp(1rem, 3.2vw, 1.5rem);
+  font-size: clamp(0.85rem, 2.2vw, 1.05rem);
+  font-weight: 700;
   letter-spacing: 0.15em;
   text-transform: uppercase;
   cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  transition: opacity 0.15s ease-in-out;
+  padding: 0.65rem 1.4rem;
+  min-width: 96px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.8);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.08s ease;
 }
 
-.btn-control:hover,
+.btn-control:hover {
+  background-color: var(--color-btn-bg-hover);
+  border-color: var(--color-border-hover);
+  color: #ffffff;
+}
+
 .btn-control:focus-visible {
-  opacity: 0.6;
+  outline: 2px solid var(--color-focus);
+  outline-offset: 3px;
 }
 
 .btn-control:active {
-  opacity: 0.4;
+  background-color: var(--color-btn-bg-active);
+  transform: translateY(2px);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
-/* Accessibility: Visually Hidden native file input */
+/* --------------------------------------------------------------------------
+   9. Background Controls (Footer)
+   -------------------------------------------------------------------------- */
+.bg-controls-container {
+  flex-shrink: 0;
+  width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(0.6rem, 2vw, 1.25rem);
+  justify-content: center;
+  align-items: center;
+  padding-top: 1rem;
+}
+
+.btn-bg-control {
+  font-size: clamp(0.7rem, 1.8vw, 0.825rem);
+  letter-spacing: 0.12em;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  border: 1px solid var(--color-border);
+  padding: 0.45rem 0.9rem;
+  min-width: auto;
+  min-height: 40px;
+}
+
+.btn-bg-control:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-hover);
+}
+
+/* --------------------------------------------------------------------------
+   10. Accessibility: Visually Hidden native file input
+   -------------------------------------------------------------------------- */
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -126,21 +251,79 @@ body {
   border: 0;
 }
 
-/* Background Controls Footer */
-.bg-controls-container {
-  position: absolute;
-  bottom: 1.5rem;
-  left: 0;
-  width: 100%;
-  display: flex;
-  gap: clamp(1rem, 3vw, 2rem);
-  justify-content: center;
-  align-items: center;
-  pointer-events: auto;
+/* --------------------------------------------------------------------------
+   11. Short Viewport Optimization (Landscape Mobile / Small Screens)
+   -------------------------------------------------------------------------- */
+@media (max-height: 540px) {
+  #app {
+    padding: 0.75rem;
+    justify-content: flex-start;
+  }
+
+  .timer-container {
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+  }
+
+  .timer-display {
+    font-size: clamp(2.5rem, 16vh, 4rem);
+  }
+
+  .phase-label {
+    font-size: 0.95rem;
+  }
+
+  .focus-hours {
+    font-size: 0.8rem;
+  }
+
+  .btn-control {
+    min-height: 38px;
+    padding: 0.4rem 0.9rem;
+    font-size: 0.85rem;
+  }
+
+  .btn-bg-control {
+    min-height: 34px;
+    padding: 0.35rem 0.65rem;
+    font-size: 0.7rem;
+  }
 }
 
-.btn-bg-control {
-  font-size: clamp(0.75rem, 2vw, 0.95rem);
-  letter-spacing: 0.12em;
-  color: var(--color-text-muted);
+/* --------------------------------------------------------------------------
+   12. Narrow Screen Optimization (<= 360px Width)
+   -------------------------------------------------------------------------- */
+@media (max-width: 360px) {
+  .controls-nav {
+    gap: 0.5rem;
+  }
+
+  .btn-control {
+    min-width: 80px;
+    padding: 0.5rem 0.8rem;
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+  }
+
+  .bg-controls-container {
+    gap: 0.5rem;
+  }
+
+  .btn-bg-control {
+    width: 100%;
+    max-width: 260px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   13. Motion Accessibility: Respect prefers-reduced-motion
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
 }
