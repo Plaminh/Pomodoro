@@ -1,127 +1,129 @@
 # Pomodoro Lite
 
-A lightweight, minimal fullscreen Pomodoro timer featuring pixel-style typography and user-uploaded custom background images.
+A lightweight, minimal fullscreen Pomodoro timer featuring retro pixel-style typography, user-uploaded custom background images, and portable JSON backup & restore.
+
+- **Expected Production URL**: [https://plaminh.github.io/Pomodoro/](https://plaminh.github.io/Pomodoro/)
+- **Repository**: [https://github.com/Plaminh/Pomodoro](https://github.com/Plaminh/Pomodoro)
+
+---
 
 ## Project Overview
 
 Pomodoro Lite provides a distraction-free, aesthetically minimal productivity timer designed to run entirely client-side in modern web browsers. It adheres strictly to fixed 50-minute focus blocks and 10-minute break periods, automatically aggregating verified focus hours without unnecessary UI widgets, borders, or external cloud dependencies.
 
+## Key Features
+
+- **Drift-Free Timestamp Engine**: Accurate countdown calculation using wall-clock timestamp deltas, immune to browser background tab throttling.
+- **Strict Focus Tracking**: Exactly 1 integer Focus Hour awarded per completed 50-minute focus session; zero credit for partial sessions or break periods.
+- **Robust LocalStorage Persistence**: Normalized paused restoration across browser reloads, throttling storage writes to protect disk performance.
+- **Custom Background Images**: Native IndexedDB Blob persistence supporting JPEG, PNG, and WebP images up to 10 MB with Object URL lifecycle safety.
+- **Responsive Retro Pixel UI**: High-contrast, accessibility-tested layout supporting mobile, tablet, and desktop viewports with fluid `clamp()` typography and `:focus-visible` indicators.
+- **JSON Backup & Restore**: Safe, portable schema-validated import and export of focus progress with atomic state rollback safeguards.
+- **Zero Third-Party Runtime Dependencies**: Pure Vanilla TypeScript, native browser Web APIs, and CSS.
+
 ## Technology Stack
 
-- **Vanilla TypeScript** (Strict type checking, ESNext/ES2022)
-- **HTML5 & Modern CSS3** (CSS Grid/Flexbox, `clamp()` responsive fluid typography)
-- **Vite** (Next-generation lightning-fast frontend tooling and bundler)
-- **LocalStorage** (State persistence for active countdowns and completed focus sessions)
-- **IndexedDB** (High-capacity client-side Blob storage for user background images)
-- **GitHub Pages** (Static hosting and automated continuous deployment)
+- **Vanilla TypeScript** (Strict type checking, ES2022 / ESNext bundler resolution)
+- **HTML5 & Modern CSS3** (CSS Flexbox, fluid `clamp()` responsive typography)
+- **Vite** (Optimized bundling and static asset pipeline)
+- **LocalStorage API** (Client-side session state persistence)
+- **IndexedDB API** (High-capacity client-side Blob storage for backgrounds)
+- **GitHub Pages & Actions** (Automated continuous integration and deployment)
 
-*Zero external frontend frameworks (React/Vue/Angular), zero CSS utility bloat (Tailwind), zero external animation or icon libraries.*
+---
 
-## Folder Structure
+## Branch Strategy
 
-```text
-pomodoro-lite/
-│
-├── public/
-│   └── fonts/             # Custom font assets (e.g. Pixelify Sans)
-│
-├── src/
-│   ├── core/
-│   │   ├── timer.ts       # Timestamp-based countdown engine
-│   │   └── pomodoro.ts    # Phase management & focus hour calculations
-│   │
-│   ├── services/
-│   │   ├── storage.ts     # LocalStorage state & session persistence
-│   │   └── background.ts  # Native IndexedDB image storage & retrieval
-│   │
-│   ├── style.css          # Reset, fullscreen layout & pixel typography
-│   ├── main.ts            # Application bootstrap & DOM event binding
-│   └── types.ts           # Shared TypeScript interfaces & duration constants
-│
-├── index.html             # Fullscreen semantic HTML layout
-├── package.json           # Minimal NPM scripts and devDependencies
-├── tsconfig.json          # Strict TypeScript compiler configuration
-├── vite.config.ts         # Vite build and base path configuration
-├── .gitignore             # Git ignore patterns
-└── README.md              # Project documentation
-```
+- `dev`: Development and testing.
+- `main`: Production deployment.
 
-## Setup Instructions
+---
+
+## Development and Testing
 
 ### Prerequisites
 
-- Node.js (v18.0.0 or later recommended, tested on Node v24+)
+- Node.js (v18.0.0 or later; tested on Node v20 LTS, v22 LTS, and v24)
 - npm (v9.0.0 or later)
 
 ### Installation
 
-Clone the repository and install the development dependencies:
+Clone the repository and install dependencies cleanly:
 
 ```bash
-git clone https://github.com/<your-username>/pomodoro-lite.git
-cd pomodoro-lite
-npm install
+git clone https://github.com/Plaminh/Pomodoro.git
+cd Pomodoro
+npm ci
 ```
 
-## Development Commands
+### Run Tests and Typecheck
 
-- **Start local development server:**
-  ```bash
-  npm run dev
-  ```
-  Spins up the local Vite development server with Hot Module Replacement (HMR).
+```bash
+npm test
+npx tsc --noEmit
+```
 
-- **TypeScript verification & production build:**
-  ```bash
-  npm run build
-  ```
-  Runs the TypeScript typechecker (`tsc`) and compiles optimized static assets into `dist/`.
+- `npm test`: Runs all 120 automated unit and regression tests using Node's native test runner (`node:test`).
+- `npx tsc --noEmit`: Validates strict type checking across all TypeScript source and test files.
 
-- **Preview production build locally:**
-  ```bash
-  npm run preview
-  ```
-  Hosts the compiled `dist/` directory locally to verify production builds before deploying.
+---
 
-## GitHub Pages Deployment
+## Production Build
 
-The application is pre-configured to deploy seamlessly to GitHub Pages.
+```bash
+npm run build
+npm run preview
+```
+
+- `npm run build`: Compiles optimized, minified production assets into the `dist/` directory.
+- `npm run preview`: Serves the production `dist/` bundle locally for verification under the `/Pomodoro/` base path.
+
+---
+
+## Deployment
+
+GitHub Actions automatically deploys the `main` branch to GitHub Pages upon push or manual workflow dispatch.
+
+Expected production URL: [https://plaminh.github.io/Pomodoro/](https://plaminh.github.io/Pomodoro/)
 
 ### Base Path Configuration
 
-In `vite.config.ts`, the `base` property is set to:
+In `vite.config.ts`, the base path matches the repository name exactly:
 
 ```ts
 import { defineConfig } from "vite";
 
 export default defineConfig({
-  base: "/pomodoro-lite/",
+  base: "/Pomodoro/",
 });
 ```
 
-> **Changing the Repository Name**:
-> - If your repository is named something other than `pomodoro-lite`, update `base: "/<your-repo-name>/"` in `vite.config.ts`.
-> - If deploying to a user or organization root page (e.g. `<username>.github.io`), update `base: "/"`.
+### GitHub Actions Workflow (`.github/workflows/deploy.yml`)
 
-### Deployment Steps
+The deployment workflow:
+1. Checks out repository code (`actions/checkout@v4`).
+2. Sets up Node.js 22 LTS with npm dependency caching (`actions/setup-node@v4`).
+3. Installs clean dependencies (`npm ci`).
+4. Executes automated tests (`npm test`).
+5. Validates TypeScript types (`npx tsc --noEmit`).
+6. Builds the production bundle (`npm run build`).
+7. Configures GitHub Pages and uploads `dist/` as the artifact (`actions/upload-pages-artifact@v3`).
+8. Deploys to GitHub Pages (`actions/deploy-pages@v4`).
 
-1. In your GitHub repository, navigate to **Settings** > **Pages**.
-2. Under **Build and deployment** > **Source**, choose **GitHub Actions**.
-3. Create a `.github/workflows/deploy.yml` workflow to run `npm ci`, `npm run build`, and deploy the generated `dist/` folder via `actions/deploy-pages`.
+---
 
-## Planned Features
+## Browser Storage
 
-1. **Timestamp-Based Timer Engine (`src/core/timer.ts`)**
-   - True timestamp delta calculation to eliminate drift when browser tabs background or throttle intervals.
-   - Start, pause, resume, and reset transitions.
-2. **Pomodoro Phase Controller (`src/core/pomodoro.ts`)**
-   - 50-minute Focus phase and 10-minute Break phase transitions.
-   - Strict Focus Hour calculation: only completed 50-minute focus blocks award +1 Focus Hour (integer-only, no fractions, breaks excluded).
-3. **Persistent State Management (`src/services/storage.ts`)**
-   - LocalStorage persistence for timer state and session counts across page refreshes.
-   - Guards against false completions resulting from browser closures or duplications.
-4. **IndexedDB Background Service (`src/services/background.ts`)**
-   - Fullscreen background upload for PNG, JPG, and WebP images.
-   - Stored locally as raw Blobs in IndexedDB and restored on startup.
-5. **JSON Backup & Restore**
-   - Export and import focus statistics as portable JSON files.
+All application state is stored locally within the browser:
+- Active countdown timer state and completed Focus Hours are persisted in **LocalStorage**.
+- Custom background image files are stored as Blobs in **IndexedDB**.
+
+Data is stored strictly on the local device and does not automatically synchronize between devices or browsers.
+
+---
+
+## Backup Limitations
+
+The JSON Backup & Restore feature allows users to export and import their focus progress.
+- **Included**: Current phase (`focus` or `break`), remaining countdown milliseconds, completed Focus Hours, and paused/idle status.
+- **Excluded**: Background images are excluded to keep backup files lightweight, portable, human-readable, and secure. Background images remain in local IndexedDB.
