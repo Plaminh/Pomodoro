@@ -18,6 +18,18 @@
           <button id="btn-reset" type="button" class="btn-control">RESET</button>
         </nav>
       </main>
+      <footer class="bg-controls-container" aria-label="Background controls">
+        <input
+          type="file"
+          id="background-upload"
+          accept="image/jpeg,image/png,image/webp"
+          class="visually-hidden"
+          aria-hidden="true"
+          tabindex="-1"
+        />
+        <button id="btn-change-background" type="button" class="btn-control btn-bg-control">CHANGE BACKGROUND</button>
+        <button id="btn-remove-background" type="button" class="btn-control btn-bg-control">REMOVE BACKGROUND</button>
+      </footer>
     </div>
     <script type="module" src="/src/main.ts"></script>
   </body>

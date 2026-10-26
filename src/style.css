@@ -44,6 +44,7 @@ body {
 
 /* Fullscreen Centered Layout */
 #app {
+  position: relative;
   width: 100vw;
   height: 100vh;
   display: flex;
@@ -110,4 +111,36 @@ body {
 
 .btn-control:active {
   opacity: 0.4;
+}
+
+/* Accessibility: Visually Hidden native file input */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Background Controls Footer */
+.bg-controls-container {
+  position: absolute;
+  bottom: 1.5rem;
+  left: 0;
+  width: 100%;
+  display: flex;
+  gap: clamp(1rem, 3vw, 2rem);
+  justify-content: center;
+  align-items: center;
+  pointer-events: auto;
+}
+
+.btn-bg-control {
+  font-size: clamp(0.75rem, 2vw, 0.95rem);
+  letter-spacing: 0.12em;
+  color: var(--color-text-muted);
 }
