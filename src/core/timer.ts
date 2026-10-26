@@ -21,6 +21,8 @@ export type TimerCompleteCallback = () => void;
 
 export interface TimerEngineOptions {
   durationMs: number;
+  initialRemainingMs?: number;
+  initialStatus?: "idle" | "paused";
   tickIntervalMs?: number;
   onTick?: TimerTickCallback;
   onComplete?: TimerCompleteCallback;
@@ -72,7 +74,10 @@ export class TimerEngine implements ITimerEngine {
   constructor(options: TimerEngineOptions) {
     this.durationMs = Math.max(0, options.durationMs);
     this.tickIntervalMs = options.tickIntervalMs ?? 100;
-    this._remainingMs = this.durationMs;
+    this._status = options.initialStatus ?? "idle";
+    this._remainingMs = options.initialRemainingMs !== undefined
+      ? Math.max(0, options.initialRemainingMs)
+      : this.durationMs;
 
     if (options.onTick) {
       this.tickListeners.add(options.onTick);

@@ -40,6 +40,8 @@ export interface PomodoroControllerOptions {
   tickIntervalMs?: number;
   initialPhase?: TimerPhase;
   initialCompletedSessions?: number;
+  initialRemainingMs?: number;
+  initialStatus?: "idle" | "paused";
 }
 
 export interface IPomodoroController {
@@ -74,10 +76,15 @@ export class PomodoroController implements IPomodoroController {
     this.phase = options.initialPhase ?? "focus";
     this.completedSessions = Math.max(0, options.initialCompletedSessions ?? 0);
 
-    const initialDuration = this.phase === "focus" ? this.focusDurationMs : this.breakDurationMs;
+    const phaseDuration = this.phase === "focus" ? this.focusDurationMs : this.breakDurationMs;
+    const initialRemaining = options.initialRemainingMs !== undefined
+      ? Math.min(phaseDuration, Math.max(0, options.initialRemainingMs))
+      : phaseDuration;
 
     this.timer = new TimerEngine({
-      durationMs: initialDuration,
+      durationMs: phaseDuration,
+      initialRemainingMs: initialRemaining,
+      initialStatus: options.initialStatus ?? "idle",
       tickIntervalMs: options.tickIntervalMs ?? 100,
       onTick: () => {
         this.notifyStateChange();

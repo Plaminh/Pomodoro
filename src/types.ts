@@ -18,6 +18,18 @@ export interface AppState {
 }
 
 /**
+ * Persisted schema for LocalStorage (Phase 4).
+ * Single versioned structure capturing essential session state.
+ */
+export interface PersistedPomodoroState {
+  version: 1;
+  phase: "focus" | "break";
+  remainingMs: number;
+  completedSessions: number;
+  status: "idle" | "paused";
+}
+
+/**
  * Timer duration constants.
  * Focus: 50 minutes.
  * Break: 10 minutes.

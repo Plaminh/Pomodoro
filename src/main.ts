@@ -2,7 +2,7 @@
  * src/main.ts
  *
  * Application entry point for Pomodoro Lite.
- * Connects the Pomodoro Controller to the minimal fullscreen UI.
+ * Coordinates PomodoroController, LocalStorage persistence, and minimal UI.
  */
 
 import "./style.css";
@@ -10,6 +10,9 @@ import type { AppState } from "./types.ts";
 import { FOCUS_DURATION_MS } from "./types.ts";
 import { PomodoroController } from "./core/pomodoro.ts";
 import { formatTimeMMSS } from "./core/timer.ts";
+import { loadPomodoroState, setupPersistence } from "./services/storage.ts";
+
+export { setupPersistence };
 
 /**
  * Initial default application state for Pomodoro Lite.
@@ -58,21 +61,38 @@ export function renderState(elements: AppElements, state: AppState): void {
 }
 
 /**
- * Initializes and wires the PomodoroController with the DOM UI controls.
+ * Initializes and wires the PomodoroController with LocalStorage and UI controls.
  */
 export function initApp(): PomodoroController {
   const elements = getAppElements();
-  const pomodoro = new PomodoroController();
 
-  // Subscribe to state updates
+  // 1. Attempt to load persisted state
+  const savedState = loadPomodoroState();
+
+  // 2. Initialize controller with restored state or default values
+  const pomodoro = new PomodoroController(
+    savedState
+      ? {
+          initialPhase: savedState.phase,
+          initialRemainingMs: savedState.remainingMs,
+          initialCompletedSessions: savedState.completedSessions,
+          initialStatus: savedState.status,
+        }
+      : {}
+  );
+
+  // 3. Render restored state immediately
+  renderState(elements, pomodoro.getState());
+
+  // 4. Subscribe UI renderer to controller state updates
   pomodoro.subscribe((state) => {
     renderState(elements, state);
   });
 
-  // Render initial display
-  renderState(elements, pomodoro.getState());
+  // 5. Setup persistence strategy
+  setupPersistence(pomodoro);
 
-  // Wire control events
+  // 6. Wire UI control events
   elements.btnStart?.addEventListener("click", () => {
     const currentState = pomodoro.getState();
     if (currentState.status === "paused") {
@@ -90,7 +110,7 @@ export function initApp(): PomodoroController {
     pomodoro.reset();
   });
 
-  console.info("[Pomodoro Lite] Pomodoro controller connected to UI successfully.");
+  console.info("[Pomodoro Lite] Application initialized successfully with persistence.");
   return pomodoro;
 }
 
