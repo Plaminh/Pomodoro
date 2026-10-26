@@ -51,6 +51,12 @@ export interface IPomodoroController {
   resume(): void;
   reset(): void;
   switchPhase(nextPhase: TimerPhase): void;
+  restoreState(state: {
+    phase: TimerPhase;
+    remainingMs: number;
+    completedSessions: number;
+    status: import("../types.ts").TimerStatus;
+  }): void;
   subscribe(listener: PomodoroStateListener): () => void;
   dispose(): void;
 }
@@ -174,6 +180,31 @@ export class PomodoroController implements IPomodoroController {
     this.phase = nextPhase;
     const duration = nextPhase === "focus" ? this.focusDurationMs : this.breakDurationMs;
     this.timer.reset(duration);
+    this.notifyStateChange();
+  }
+
+  /**
+   * Restores a validated state into the controller.
+   * Stops any currently running timer, invalidates pending completion callbacks,
+   * updates phase, remainingMs, completedSessions, and status, and notifies subscribers.
+   * If status is 'running', safely restarts active countdown.
+   */
+  restoreState(state: {
+    phase: TimerPhase;
+    remainingMs: number;
+    completedSessions: number;
+    status: import("../types.ts").TimerStatus;
+  }): void {
+    if (this.isDisposed) {
+      return;
+    }
+
+    this.phase = state.phase;
+    this.completedSessions = Math.max(0, Math.floor(state.completedSessions));
+    const phaseDuration = this.phase === "focus" ? this.focusDurationMs : this.breakDurationMs;
+    const remainingMs = Math.min(phaseDuration, Math.max(0, state.remainingMs));
+
+    this.timer.restore(remainingMs, state.status, phaseDuration);
     this.notifyStateChange();
   }
 

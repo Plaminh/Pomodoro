@@ -12,8 +12,9 @@ import { PomodoroController } from "./core/pomodoro.ts";
 import { formatTimeMMSS } from "./core/timer.ts";
 import { loadPomodoroState, setupPersistence } from "./services/storage.ts";
 import { BackgroundManager } from "./services/background.ts";
+import { exportBackup, importBackupFile } from "./services/backup.ts";
 
-export { setupPersistence, BackgroundManager };
+export { setupPersistence, BackgroundManager, exportBackup, importBackupFile };
 
 /**
  * Initial default application state for Pomodoro Lite.
@@ -36,6 +37,9 @@ export interface AppElements {
   bgUpload: HTMLInputElement | null;
   btnChangeBg: HTMLButtonElement | null;
   btnRemoveBg: HTMLButtonElement | null;
+  backupImport: HTMLInputElement | null;
+  btnExportBackup: HTMLButtonElement | null;
+  btnImportBackup: HTMLButtonElement | null;
 }
 
 export function getAppElements(): AppElements {
@@ -49,6 +53,9 @@ export function getAppElements(): AppElements {
     bgUpload: document.getElementById("background-upload") as HTMLInputElement | null,
     btnChangeBg: document.getElementById("btn-change-background") as HTMLButtonElement | null,
     btnRemoveBg: document.getElementById("btn-remove-background") as HTMLButtonElement | null,
+    backupImport: document.getElementById("backup-import") as HTMLInputElement | null,
+    btnExportBackup: document.getElementById("btn-export-backup") as HTMLButtonElement | null,
+    btnImportBackup: document.getElementById("btn-import-backup") as HTMLButtonElement | null,
   };
 }
 
@@ -151,6 +158,37 @@ export function initApp(options?: { backgroundManager?: BackgroundManager }): Po
     } catch (error) {
       console.error("[Pomodoro Lite] Failed to remove background image:", error);
     }
+  });
+
+  // 9. Wire backup UI controls
+  elements.btnExportBackup?.addEventListener("click", () => {
+    const success = exportBackup(pomodoro);
+    if (!success) {
+      window.alert("Failed to export backup.");
+    }
+  });
+
+  elements.btnImportBackup?.addEventListener("click", () => {
+    elements.backupImport?.click();
+  });
+
+  elements.backupImport?.addEventListener("change", async (event) => {
+    const target = event.target as HTMLInputElement;
+    const file = target.files?.[0];
+    if (file) {
+      try {
+        const result = await importBackupFile(file, pomodoro);
+        if (result.success) {
+          window.alert("Backup restored successfully.");
+        } else if (result.error && result.error !== "Import cancelled by user.") {
+          window.alert(`Import failed: ${result.error}`);
+        }
+      } catch (error) {
+        console.error("[Pomodoro Lite] Failed to import backup:", error);
+        window.alert("Failed to import backup due to an unexpected error.");
+      }
+    }
+    target.value = "";
   });
 
   console.info("[Pomodoro Lite] Application initialized successfully with persistence.");

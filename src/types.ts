@@ -38,3 +38,20 @@ export const FOCUS_DURATION_MINUTES = 50;
 export const BREAK_DURATION_MINUTES = 10;
 export const FOCUS_DURATION_MS = FOCUS_DURATION_MINUTES * 60 * 1000;
 export const BREAK_DURATION_MS = BREAK_DURATION_MINUTES * 60 * 1000;
+
+/**
+ * Backup format schema for Phase 7 (JSON Backup & Restore).
+ */
+export interface PomodoroBackupData {
+  phase: TimerPhase;
+  remainingMs: number;
+  completedSessions: number;
+  status: "idle" | "paused";
+}
+
+export interface PomodoroBackup {
+  app: "pomodoro-lite";
+  version: 1;
+  exportedAt: string;
+  data: PomodoroBackupData;
+}

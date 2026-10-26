@@ -18,7 +18,7 @@
           <button id="btn-reset" type="button" class="btn-control">RESET</button>
         </nav>
       </main>
-      <footer class="bg-controls-container" aria-label="Background controls">
+      <footer class="bg-controls-container" aria-label="Application controls">
         <input
           type="file"
           id="background-upload"
@@ -29,6 +29,16 @@
         />
         <button id="btn-change-background" type="button" class="btn-control btn-bg-control">CHANGE BACKGROUND</button>
         <button id="btn-remove-background" type="button" class="btn-control btn-bg-control">REMOVE BACKGROUND</button>
+        <input
+          type="file"
+          id="backup-import"
+          accept=".json,application/json"
+          class="visually-hidden"
+          aria-hidden="true"
+          tabindex="-1"
+        />
+        <button id="btn-export-backup" type="button" class="btn-control btn-bg-control">EXPORT BACKUP</button>
+        <button id="btn-import-backup" type="button" class="btn-control btn-bg-control">IMPORT BACKUP</button>
       </footer>
     </div>
     <script type="module" src="/src/main.ts"></script>

@@ -39,9 +39,9 @@ export function getStorage(): Storage | null {
  * Saves the current Pomodoro application state to LocalStorage.
  * Running timers are normalized to "paused" status.
  */
-export function savePomodoroState(state: AppState, storage: Storage | null = getStorage()): void {
+export function savePomodoroState(state: AppState, storage: Storage | null = getStorage()): boolean {
   if (!storage || !state) {
-    return;
+    return false;
   }
 
   const normalizedStatus: "idle" | "paused" =
@@ -57,8 +57,10 @@ export function savePomodoroState(state: AppState, storage: Storage | null = get
 
   try {
     storage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    return true;
   } catch (err) {
     console.warn("[Storage] Failed to persist Pomodoro state:", err);
+    return false;
   }
 }
 

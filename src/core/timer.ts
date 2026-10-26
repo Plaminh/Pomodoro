@@ -38,6 +38,7 @@ export interface ITimerEngine {
   pause(): void;
   resume(): void;
   reset(durationMs?: number): void;
+  restore(remainingMs: number, status: TimerStatus, durationMs?: number): void;
   getRemainingMs(): number;
   getStatus(): TimerStatus;
   dispose(): void;
@@ -247,6 +248,43 @@ export class TimerEngine implements ITimerEngine {
     this._status = "idle";
     this.completedFired = false;
     this.notifyTick(this._remainingMs);
+  }
+
+  /**
+   * Restores timer state to a specified status (idle, paused, or running) with specified remaining milliseconds.
+   * Cancels active intervals, invalidates pending completion callbacks, and updates duration.
+   * If status is 'running' and remainingMs > 0, restarts countdown interval safely without drift.
+   */
+  restore(remainingMs: number, status: TimerStatus, durationMs?: number): void {
+    if (this.isDisposed) {
+      return;
+    }
+
+    this.sessionId++;
+    this.stopInterval();
+
+    if (durationMs !== undefined && durationMs >= 0) {
+      this.durationMs = durationMs;
+    }
+
+    this._remainingMs = Math.max(0, remainingMs);
+    this.completedFired = false;
+
+    if (status === "running" && this._remainingMs > 0) {
+      this._endTime = Date.now() + this._remainingMs;
+      this._status = "running";
+      this.startInterval();
+      this.notifyTick(this._remainingMs);
+
+      // Reentrancy guard: if a tick callback paused, reset, or disposed during notifyTick
+      if (this.isDisposed || (this._status as TimerStatus) !== "running") {
+        this.stopInterval();
+      }
+    } else {
+      this._endTime = null;
+      this._status = this._remainingMs <= 0 ? "idle" : status === "running" ? "paused" : status;
+      this.notifyTick(this._remainingMs);
+    }
   }
 
   /**
