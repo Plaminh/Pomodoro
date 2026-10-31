@@ -50,6 +50,7 @@ export interface IPomodoroController {
   pause(): void;
   resume(): void;
   reset(): void;
+  skipBreak(): void;
   switchPhase(nextPhase: TimerPhase): void;
   restoreState(state: {
     phase: TimerPhase;
@@ -165,6 +166,20 @@ export class PomodoroController implements IPomodoroController {
 
     const duration = this.phase === "focus" ? this.focusDurationMs : this.breakDurationMs;
     this.timer.reset(duration);
+    this.notifyStateChange();
+  }
+
+  /**
+   * Stops and skips the current Break, returning to a full idle Focus session.
+   * Focus calls are ignored and completedSessions is never modified.
+   */
+  skipBreak(): void {
+    if (this.isDisposed || this.phase !== "break") {
+      return;
+    }
+
+    this.phase = "focus";
+    this.timer.reset(this.focusDurationMs);
     this.notifyStateChange();
   }
 

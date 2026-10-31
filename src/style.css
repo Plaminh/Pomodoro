@@ -189,6 +189,10 @@ body::before {
   transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.08s ease;
 }
 
+[hidden] {
+  display: none !important;
+}
+
 .btn-control:hover {
   background-color: var(--color-btn-bg-hover);
   border-color: var(--color-border-hover);

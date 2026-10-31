@@ -9,12 +9,14 @@ import "./style.css";
 import type { AppState } from "./types.ts";
 import { FOCUS_DURATION_MS } from "./types.ts";
 import { PomodoroController } from "./core/pomodoro.ts";
-import { formatTimeMMSS } from "./core/timer.ts";
 import { loadPomodoroState, setupPersistence } from "./services/storage.ts";
 import { BackgroundManager } from "./services/background.ts";
 import { exportBackup, importBackupFile } from "./services/backup.ts";
+import { getAppElements, renderState } from "./ui.ts";
 
 export { setupPersistence, BackgroundManager, exportBackup, importBackupFile };
+export { getAppElements, renderState } from "./ui.ts";
+export type { AppElements } from "./ui.ts";
 
 /**
  * Initial default application state for Pomodoro Lite.
@@ -26,53 +28,6 @@ export const initialAppState: AppState = {
   endTime: null,
   completedSessions: 0,
 };
-
-export interface AppElements {
-  timerDisplay: HTMLElement | null;
-  phaseLabel: HTMLElement | null;
-  focusHours: HTMLElement | null;
-  btnStart: HTMLButtonElement | null;
-  btnPause: HTMLButtonElement | null;
-  btnReset: HTMLButtonElement | null;
-  bgUpload: HTMLInputElement | null;
-  btnChangeBg: HTMLButtonElement | null;
-  btnRemoveBg: HTMLButtonElement | null;
-  backupImport: HTMLInputElement | null;
-  btnExportBackup: HTMLButtonElement | null;
-  btnImportBackup: HTMLButtonElement | null;
-}
-
-export function getAppElements(): AppElements {
-  return {
-    timerDisplay: document.getElementById("timer-display"),
-    phaseLabel: document.getElementById("phase-label"),
-    focusHours: document.getElementById("focus-hours"),
-    btnStart: document.getElementById("btn-start") as HTMLButtonElement | null,
-    btnPause: document.getElementById("btn-pause") as HTMLButtonElement | null,
-    btnReset: document.getElementById("btn-reset") as HTMLButtonElement | null,
-    bgUpload: document.getElementById("background-upload") as HTMLInputElement | null,
-    btnChangeBg: document.getElementById("btn-change-background") as HTMLButtonElement | null,
-    btnRemoveBg: document.getElementById("btn-remove-background") as HTMLButtonElement | null,
-    backupImport: document.getElementById("backup-import") as HTMLInputElement | null,
-    btnExportBackup: document.getElementById("btn-export-backup") as HTMLButtonElement | null,
-    btnImportBackup: document.getElementById("btn-import-backup") as HTMLButtonElement | null,
-  };
-}
-
-/**
- * Renders the state snapshot to the DOM elements using textContent.
- */
-export function renderState(elements: AppElements, state: AppState): void {
-  if (elements.timerDisplay) {
-    elements.timerDisplay.textContent = formatTimeMMSS(state.remainingMs);
-  }
-  if (elements.phaseLabel) {
-    elements.phaseLabel.textContent = state.phase === "focus" ? "FOCUS TIME" : "BREAK TIME";
-  }
-  if (elements.focusHours) {
-    elements.focusHours.textContent = `TOTAL HOURS: ${state.completedSessions}h`;
-  }
-}
 
 /**
  * Initializes and wires the PomodoroController with LocalStorage and UI controls.
@@ -128,6 +83,10 @@ export function initApp(options?: { backgroundManager?: BackgroundManager }): Po
 
   elements.btnReset?.addEventListener("click", () => {
     pomodoro.reset();
+  });
+
+  elements.btnSkipBreak?.addEventListener("click", () => {
+    pomodoro.skipBreak();
   });
 
   // 8. Wire background UI controls
